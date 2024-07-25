@@ -3,46 +3,65 @@ import streamlit as st
 import numpy as np
 import os
 
-# Mendapatkan path absolut ke file model
-current_directory = os.path.dirname(os.path.abspath(__file__))
-model_path = os.path.join(current_directory, 'model.sav')
+# Fungsi untuk memuat model
+def load_model(model_path):
+    try:
+        with open(model_path, 'rb') as file:
+            return pickle.load(file)
+    except FileNotFoundError:
+        st.error(f"File model tidak ditemukan di: {model_path}")
+        return None
+    except Exception as e:
+        st.error(f"Terjadi kesalahan saat membaca model: {str(e)}")
+        return None
 
-# Membaca model
-traffic_model = pickle.load(open('model_path', 'rb'))
+# Coba beberapa lokasi untuk model
+model_locations = [
+    'model.sav',
+    os.path.join(os.path.dirname(__file__), 'model.sav'),
+    '/app/model.sav',  # Untuk Streamlit Cloud
+    os.path.expanduser('~/model.sav')
+]
+
+traffic_model = None
+for location in model_locations:
+    traffic_model = load_model(location)
+    if traffic_model:
+        st.success(f"Model berhasil dimuat dari: {location}")
+        break
+
+if not traffic_model:
+    st.error("Gagal memuat model. Aplikasi tidak dapat melanjutkan.")
+    st.stop()
 
 # Judul web
 st.title('Prediksi Traffic')
 
-# Input data dengan contoh angka valid untuk pengujian
-CarCount = st.text_input('CarCount', '2')
-BikeCount = st.text_input('BikeCount', '120')
-BusCount = st.text_input('BusCount', '70')
-TruckCount = st.text_input('TruckCount', '20')
-Total = st.text_input('Total', '25.0')
-
-Traffic_Situation = ''
+# Input data
+CarCount = st.number_input('CarCount', value=2, step=1)
+BikeCount = st.number_input('BikeCount', value=120, step=1)
+BusCount = st.number_input('BusCount', value=70, step=1)
+TruckCount = st.number_input('TruckCount', value=20, step=1)
+Total = st.number_input('Total', value=25.0, step=0.1)
 
 # Membuat tombol untuk prediksi
 if st.button('Prediksi'):
     try:
-        # Konversi input menjadi numerik
-        inputs = np.array([[float(CarCount), float(BikeCount), float(BusCount), float(TruckCount), float(Total)]])
+        # Persiapkan input
+        inputs = np.array([[CarCount, BikeCount, BusCount, TruckCount, Total]])
         
         # Lakukan prediksi
         prediction = traffic_model.predict(inputs)
         
-        # Tentukan situasi lalu lintas berdasarkan prediksi
-        if prediction[0] == 1:
-            Traffic_Situation = 'Normal'
-        elif prediction[0] == 2:
-            Traffic_Situation = 'Low'
-        elif prediction[0] == 3:
-            Traffic_Situation = 'High'
-        elif prediction[0] == 4:
-            Traffic_Situation = 'Heavy'
+        # Tentukan situasi lalu lintas
+        traffic_situations = {
+            1: 'Normal',
+            2: 'Low',
+            3: 'High',
+            4: 'Heavy'
+        }
+        Traffic_Situation = traffic_situations.get(prediction[0], 'Tidak Diketahui')
         
         st.success(f'Situasi Lalu Lintas: {Traffic_Situation}')
-    except ValueError:
-        st.error("Pastikan semua input diisi dengan angka yang valid.")
     except Exception as e:
-        st.error(f"Terjadi kesalahan: {e}")
+        st.error(f"Terjadi kesalahan saat melakukan prediksi: {str(e)}")
