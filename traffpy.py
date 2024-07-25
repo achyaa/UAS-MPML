@@ -5,10 +5,10 @@ import os
 
 # Mendapatkan path absolut ke file model
 current_directory = os.path.dirname(os.path.abspath(__file__))
-model.sav = os.path.join(current_directory, 'model.sav')
+model_path = os.path.join(current_directory, 'model.sav')
 
 # Membaca model
-traffic_model = pickle.load(open('model.sav', 'rb'))
+traffic_model = pickle.load(open('model_path', 'rb'))
 
 
 # Judul web
