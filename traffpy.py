@@ -4,7 +4,7 @@ import numpy as np
 import os
 
 # Mendapatkan path absolut ke file model
-current_directory = os.path.dirname(os.path.abspath(Taffic.csv))
+current_directory = os.path.dirname(os.path.abspath(__file__))
 model_path = os.path.join(current_directory, 'model.sav')
 
 # Membaca model
