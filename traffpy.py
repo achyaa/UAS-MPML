@@ -8,7 +8,8 @@ current_directory = os.path.dirname(os.path.abspath(__file__))
 model_path = os.path.join(current_directory, 'model.sav')
 
 # Membaca model
-traffic_model = pickle.load(open(model.sav, 'rb'))
+traffic_model = pickle.load(open('path/ke/direktori/model.sav', 'rb'))
+
 
 # Judul web
 st.title('Prediksi Traffic')
