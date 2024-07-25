@@ -8,15 +8,7 @@ current_directory = os.path.dirname(os.path.abspath(__file__))
 model_path = os.path.join(current_directory, 'model.sav')
 
 # Membaca model
-try:
-    with open(model_path, 'rb') as file:
-        traffic_model = pickle.load(file)
-except FileNotFoundError:
-    st.error(f"File model tidak ditemukan di: {model_path}")
-    st.stop()
-except Exception as e:
-    st.error(f"Terjadi kesalahan saat membaca model: {e}")
-    st.stop()
+traffic_model = pickle.load(open(model_path, 'rb'))
 
 # Judul web
 st.title('Prediksi Traffic')
