@@ -8,6 +8,8 @@ try:
         traffic_model = pickle.load(model_file)
 except FileNotFoundError:
     st.error("File model tidak ditemukan. Pastikan file 'model.sav' ada di direktori yang benar.")
+except ModuleNotFoundError as e:
+    st.error(f"Modul tidak ditemukan: {e}. Pastikan semua modul yang diperlukan sudah terinstal.")
 except Exception as e:
     st.error(f"Terjadi kesalahan saat memuat model: {e}")
 else:
