@@ -1,37 +1,39 @@
+import sys
+import os
 import pickle
 import streamlit as st
 import numpy as np
-import os
-import logging
-import sys
-import sklearn
 
-# Konfigurasi logging
-logging.basicConfig(level=logging.INFO)
+# Tambahkan direktori saat ini ke sys.path
+current_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(current_dir)
 
-# Informasi versi
-st.write(f"Python version: {sys.version}")
-st.write(f"Sklearn version: {sklearn.__version__}")
+# Fungsi untuk memuat model
+def load_model(model_path):
+    try:
+        with open(model_path, 'rb') as file:
+            return pickle.load(file)
+    except FileNotFoundError:
+        st.error(f"File model tidak ditemukan di: {model_path}")
+    except ModuleNotFoundError as e:
+        st.error(f"Modul tidak ditemukan: {e}")
+        st.error("Pastikan semua dependensi terinstal dengan benar.")
+    except Exception as e:
+        st.error(f"Terjadi kesalahan saat membaca model: {e}")
+    return None
 
 # Judul web
 st.title('Prediksi Traffic')
 
-# Fungsi untuk memuat model
-def load_model(path):
-    try:
-        with open(path, 'rb') as file:
-            model = pickle.load(file)
-        logging.info(f"Model berhasil dimuat dari {path}")
-        return model
-    except Exception as e:
-        logging.error(f"Gagal memuat model dari {path}: {e}")
-        return None
+# Informasi debugging
+st.write(f"Current working directory: {os.getcwd()}")
+st.write(f"Python path: {sys.path}")
+st.write("Installed packages:")
+st.write(os.popen('pip list').read())
 
-# Mencoba beberapa lokasi untuk model
-current_directory = os.path.dirname(os.path.abspath(__file__))
+# Coba beberapa lokasi untuk model
 model_locations = [
-    os.path.join(current_directory, 'model.sav'),
-    'model.sav',
+    os.path.join(current_dir, 'model.sav'),
     '/app/model.sav',
     os.path.expanduser('~/model.sav')
 ]
@@ -47,22 +49,12 @@ if not traffic_model:
     st.error("Tidak dapat menemukan atau memuat model. Aplikasi tidak dapat melanjutkan.")
     st.stop()
 
-# Verifikasi model
-if hasattr(traffic_model, 'predict'):
-    st.success("Model valid dan memiliki metode predict")
-else:
-    st.error("Model tidak valid atau tidak memiliki metode predict")
-    st.stop()
-
 # Input data
 CarCount = st.number_input('CarCount', value=2, step=1)
 BikeCount = st.number_input('BikeCount', value=120, step=1)
 BusCount = st.number_input('BusCount', value=70, step=1)
 TruckCount = st.number_input('TruckCount', value=20, step=1)
 Total = st.number_input('Total', value=25.0, step=0.1)
-
-# Logging tipe data input
-logging.info(f"Input types: {type(CarCount)}, {type(BikeCount)}, {type(BusCount)}, {type(TruckCount)}, {type(Total)}")
 
 # Membuat tombol untuk prediksi
 if st.button('Prediksi'):
@@ -83,14 +75,14 @@ if st.button('Prediksi'):
         Traffic_Situation = traffic_situations.get(prediction[0], 'Tidak Diketahui')
         
         st.success(f'Situasi Lalu Lintas: {Traffic_Situation}')
-    except ValueError as ve:
-        st.error(f"Kesalahan nilai input: {ve}")
-        logging.error(f"ValueError: {ve}")
     except Exception as e:
-        st.error(f"Terjadi kesalahan: {e}")
-        logging.error(f"Unexpected error: {e}")
+        st.error(f"Terjadi kesalahan saat melakukan prediksi: {e}")
 
-# Informasi tambahan untuk debugging
-st.write("Informasi Debugging:")
-st.write(f"Current directory: {current_directory}")
-st.write(f"Model path yang dicoba: {', '.join(model_locations)}")
+# Tambahan informasi untuk debugging
+st.write("\nInformasi Tambahan:")
+st.write(f"Python version: {sys.version}")
+try:
+    import sklearn
+    st.write(f"Sklearn version: {sklearn.__version__}")
+except ImportError:
+    st.write("Sklearn tidak terinstal")
